@@ -2,7 +2,7 @@
 # It must be serving requests via the API endpoint specified in the constant API_URL in config.rb.
 
 # Author:: Roberto Toso
-# Copyright:: Copyright (c) 2024
+# License: Apache License 2.0
 
 # Params:
 # [0]:: the patch where to search for images (i.e. c:/photos/)
