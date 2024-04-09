@@ -1,3 +1,4 @@
+# Uses llava multimodal AI to batch scan content in images in a local folder and display what matches a specific keyword.
 # Ensure that 'ollama' with the 'llama' multimodal model is installed.
 # It must be serving requests via the API endpoint specified in the constant API_URL in config.rb.
 
@@ -22,9 +23,10 @@ require_relative 'metadata'
 
 # Main class responsible for orchestrating the image search process.
 class Main
-  def initialize
+  def initialize(debug = false)
     puts "#{PROGRAM_NAME} #{PROGRAM_VERSION} started at: #{Time.now}"
-    @parser = ImageParser.new(API_URL)
+    @parser = ImageParser.new(API_URL, debug)
+	@debug = debug
   end
 
   # Method to start the image search process.
@@ -45,7 +47,7 @@ class Main
 
   # Method to perform the image search.
   def perform_image_search(directory, keyword)
-    search = ImageSearcher.new(@parser)
+    search = ImageSearcher.new(@parser, @debug)
     search.search_files_in_directory(directory, keyword)
   end
 
@@ -56,4 +58,4 @@ class Main
   end
 end
 
-Main.new.start_search(ARGV[0], ARGV[1])
+Main.new(ARGV.include?("-debug")).start_search(ARGV[0], ARGV[1])

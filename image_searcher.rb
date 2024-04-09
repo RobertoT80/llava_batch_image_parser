@@ -2,8 +2,9 @@
 class ImageSearcher
   IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg'].freeze
 
-  def initialize(parser)
+  def initialize(parser, debug)
     @parser = parser
+	@debug = debug
   end
 
   # Method to search for files in a directory and parse image files.
@@ -81,6 +82,7 @@ class ImageSearcher
   # @param image_parse_response [String] The parsed content of the image.
   # @param keyword [String] The keyword to search for in the content of image files.
   def image_matches?(image_parse_response, keyword)
+    puts "DEBUG: Searching for '#{keyword}' and '#{keyword.en.plural}'" if @debug
     if image_parse_response.split.include?(keyword)
       display_match(image_parse_response, keyword, false)
     elsif image_parse_response.split.include?(keyword.en.plural)
@@ -103,15 +105,15 @@ class ImageSearcher
   
   def display_string_colorized(phrase, keyword, color_code="\e[32m")
   output = "=> "
-  words = phrase.split(/\s+/) # Split the phrase into words
+  words = phrase.split(/\s+/)
   words.each do |word|
-    if word.downcase == keyword.downcase # Check if the word matches the keyword
-      output += "#{color_code}#{word}\e[0m " # Highlight the word with the specified color
+    if word.downcase == keyword.downcase
+      output += "#{color_code}#{word}\e[0m "
     else
-      output += "#{word} " # Add the word to the output string
+      output += "#{word} "
     end
   end
-  puts output.strip # Print the output string, removing trailing whitespace
+  puts output.strip
   puts
 end
   

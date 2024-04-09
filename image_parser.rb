@@ -3,8 +3,9 @@ class ImageParser
   # Initializes an ImageParser object with the provided API URL.
   #
   # @param api_url [String] The URL of the API endpoint for parsing images.
-  def initialize(api_url)
+  def initialize(api_url, debug)
     @api_url = api_url
+	@debug = debug
   end
 
   # Parses the image using the specified model and prompt.
