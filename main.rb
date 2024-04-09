@@ -47,8 +47,9 @@ class Main
 
   # Method to perform the image search.
   def perform_image_search(directory, keyword)
+    directory = directory
     search = ImageSearcher.new(@parser, @debug)
-    search.search_files_in_directory(directory, keyword)
+    search.search_files_in_directory(directory.gsub("\\", "/"), keyword)
   end
 
   # Method to display usage instructions.
