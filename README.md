@@ -9,7 +9,7 @@ ruby main.rb c:/photos/ cat
 To search in subfolders as well, add -recurse:  
 ruby main.rb c:/photos/ cat -recurse  
 
-There is also a -debug parameter which shows the image description even if it doesn't matches, plus some additional debug logs:
+There is also a -debug parameter which shows the image description even if it doesn't matches, plus some additional debug logs:  
 ruby main.rb c:/photos/ cat -debug  
 
 To search for a keyword which is made of more than one word, such as "washing machine", make sure to wrap the parameter in quote i.e.:  
