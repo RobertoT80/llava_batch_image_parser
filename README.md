@@ -7,6 +7,3 @@ Example to run and search for images of "cat" or "cats" in your photos dir:
 ruby main.rb c:/photos/ cat
 To search for a keyword which is made of more than one word, such as "washing machine", make sure to wrap the parameter in quote i.e.:
 ruby main.rb c:/photos/ 'washing machine'
-
-The program also allows to run in debug mode by adding -debug, which for now, only shows the pluralized version of the string which you are searching, so you can double check it's been pluralized correctly.
-ruby main.rb c:/photos/ 'washing machine' -debug
