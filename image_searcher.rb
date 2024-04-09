@@ -4,7 +4,7 @@ class ImageSearcher
 
   def initialize(parser, debug)
     @parser = parser
-	@debug = debug
+    @debug = debug
   end
 
   # Method to search for files in a directory and parse image files.
@@ -53,6 +53,7 @@ class ImageSearcher
     image_parse_response = @parser.parse(image_fullpath)
     return if image_parse_response.nil?
 
+    puts "DEBUG: Image description: #{image_parse_response}" if @debug
     image_matches?(image_parse_response, keyword)
   end
 
@@ -77,44 +78,79 @@ class ImageSearcher
     puts "Total time taken: #{total_time} seconds"
   end
 
+  def search_multiple_word(word_list, keyword)
+    puts "DEBUG: keyword is #{keyword.split.count} words" if @debug
+    index = word_list.index(keyword.split[0])
+    if index.nil?
+      puts "DEBUG: multiple word not found."
+    else
+      puts "DEBUG: First word found at index: #{index}" if @debug
+      shift = 0
+      # singular
+      keyword.split.each do |word|
+        index_shifted = shift + index
+        if word.downcase == word_list[index_shifted].downcase
+          shift += 1
+        else
+          return false
+        end
+      end
+      return true
+    end
+  end
+
   # Method to return if an image matches.
   #
   # @param image_parse_response [String] The parsed content of the image.
   # @param keyword [String] The keyword to search for in the content of image files.
   def image_matches?(image_parse_response, keyword)
     puts "DEBUG: Searching for '#{keyword}' and '#{keyword.en.plural}'" if @debug
-    if image_parse_response.split.include?(keyword)
-      display_match(image_parse_response, keyword, false)
-    elsif image_parse_response.split.include?(keyword.en.plural)
-      display_match(image_parse_response, keyword, true)
+    word_list = image_parse_response.downcase.split(/\W+/)
+    if keyword.index(' ').nil?
+      puts "DEBUG: keyword is a single word." if @debug
+      if word_list.include?(keyword)
+        display_match(image_parse_response, keyword, false)
+      elsif word_list.include?(keyword.en.plural)
+        display_match(image_parse_response, keyword, true)
+      end
+    else
+      found = search_multiple_word(word_list, keyword)
+      if found
+        display_match(image_parse_response, keyword, false)
+      else
+        found = search_multiple_word(word_list, keyword.en.plural)
+		display_match(image_parse_response, keyword, true) if found
+      end
     end
   end
 
   # Displays the content of the image specifying if the match was with the plural form of the keyword
-  def display_match(content, keyword, plural)
-    if plural
-      keyword = keyword.en.plural
-      message = "\e[32mMatch found! (pluralized form: #{keyword})\e[0m"
-    else
-      message = "\e[32mMatch found!\e[0m"
-    end
-    puts message
-    display_string_colorized(content, keyword)
-    
-  end
-  
-  def display_string_colorized(phrase, keyword, color_code="\e[32m")
-  output = "=> "
-  words = phrase.split(/\s+/)
-  words.each do |word|
-    if word.downcase == keyword.downcase
-      output += "#{color_code}#{word}\e[0m "
-    else
-      output += "#{word} "
-    end
-  end
-  puts output.strip
-  puts
-end
-  
+	def display_match(content, keyword, plural)
+	  if plural
+		keyword = keyword.en.plural
+		message = "\e[32mMatch found! (pluralized form: #{keyword})\e[0m"
+	  else
+		message = "\e[32mMatch found!\e[0m"
+	  end
+
+	  puts message
+	  display_string_colorized(content, keyword)
+	end
+
+	def display_string_colorized(phrase, keyword, color_code="\e[32m")
+	  output = "=> "
+	  words = phrase.split(/\s+/)
+	  keyword_words = keyword.split(/\s+/)
+
+	  words.each do |word|
+		if keyword_words.any? { |kw| word.downcase == kw.downcase }
+		  output += "#{color_code}#{word}\e[0m "
+		else
+		  output += "#{word} "
+		end
+	  end
+
+	  puts output.strip
+	  puts
+	end
 end
