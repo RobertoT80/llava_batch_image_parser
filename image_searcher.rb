@@ -1,4 +1,4 @@
-# Class responsible for searching image files in a directory and parsing them.
+# Class responsible for searching image files in a directory and see if they match with the parsed content.
 class ImageSearcher
   IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg'].freeze
 
@@ -18,10 +18,7 @@ class ImageSearcher
 
     images = Dir.glob(File.join(directory, '*')).select { |file| file_image?(file) }
     display_image_count(images.size)
-
-    start_time = Time.now # Record start time
     process_images(images, keyword)
-    display_total_time(start_time)
   end
 
   private
@@ -62,20 +59,11 @@ class ImageSearcher
   # @param count [Integer] The count of image files found.
   def display_image_count(count)
     if count.zero?
-      puts 'No image files found in the directory. Exiting.'
-      Kernel.exit(0)
+      puts 'No image files found in the directory.'
+      return
     else
-      puts "=== Number of image files found: #{count} ==="
+      puts "Number of image files found: #{count}"
     end
-  end
-
-  # Method to display the total time taken for processing.
-  #
-  # @param start_time [Time] The start time of processing.
-  def display_total_time(start_time)
-    end_time = Time.now
-    total_time = (end_time - start_time)
-    puts "Total time taken: #{total_time} seconds"
   end
 
   def search_multiple_word(word_list, keyword)
@@ -105,7 +93,9 @@ class ImageSearcher
   # @param keyword [String] The keyword to search for in the content of image files.
   def image_matches?(image_parse_response, keyword)
     puts "DEBUG: Searching for '#{keyword}' and '#{keyword.en.plural}'" if @debug
-    word_list = image_parse_response.downcase.split(/\W+/)
+    # I want all words removing the punctuation if present at the end except if it's an apostrophe
+	word_list = image_parse_response.downcase.split(/\W+|\b'/)
+	puts "word_list: #{word_list}" if @debug
     if keyword.index(' ').nil?
       puts "DEBUG: keyword is a single word." if @debug
       if word_list.include?(keyword)
@@ -119,38 +109,37 @@ class ImageSearcher
         display_match(image_parse_response, keyword, false)
       else
         found = search_multiple_word(word_list, keyword.en.plural)
-		display_match(image_parse_response, keyword, true) if found
+        display_match(image_parse_response, keyword, true) if found
       end
     end
   end
 
   # Displays the content of the image specifying if the match was with the plural form of the keyword
-	def display_match(content, keyword, plural)
-	  if plural
-		keyword = keyword.en.plural
-		message = "\e[32mMatch found! (pluralized form: #{keyword})\e[0m"
-	  else
-		message = "\e[32mMatch found!\e[0m"
-	  end
+  def display_match(content, keyword, plural)
+    if plural
+      keyword = keyword.en.plural
+      message = "\e[32mMatch found! (pluralized form: #{keyword})\e[0m"
+    else
+      message = "\e[32mMatch found!\e[0m"
+    end
 
-	  puts message
-	  display_string_colorized(content, keyword)
-	end
+    puts message
+    display_string_colorized(content, keyword)
+  end
 
-	def display_string_colorized(phrase, keyword, color_code="\e[32m")
-	  output = "=> "
-	  words = phrase.split(/\s+/)
-	  keyword_words = keyword.split(/\s+/)
+  def display_string_colorized(phrase, keyword, color_code="\e[32m")
+    output = "=> "
+    words = phrase.split(/\s+/)
+    keyword_words = keyword.split(/\s+/)
 
-	  words.each do |word|
-		if keyword_words.any? { |kw| word.downcase == kw.downcase }
-		  output += "#{color_code}#{word}\e[0m "
-		else
-		  output += "#{word} "
-		end
-	  end
+    words.each do |word|
+      if keyword_words.any? { |kw| word.downcase == kw.downcase }
+        output += "#{color_code}#{word}\e[0m "
+      else
+        output += "#{word} "
+      end
+    end
 
-	  puts output.strip
-	  puts
-	end
+    puts output.strip
+  end
 end

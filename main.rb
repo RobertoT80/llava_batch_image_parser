@@ -21,23 +21,24 @@ require_relative 'image_searcher'
 require_relative 'config'
 require_relative 'metadata'
 
-# Main class responsible for orchestrating the image search process.
 class Main
   def initialize(debug = false)
     puts "#{PROGRAM_NAME} #{PROGRAM_VERSION} started at: #{Time.now}"
+
     @parser = ImageParser.new(API_URL, debug)
-	@debug = debug
+    @debug = debug
+    @start_time = Time.now
   end
 
-  # Method to start the image search process.
-  def start_search(directory, keyword)
+  # Wrapper which validates the inputs and starts the search
+  def init_search(directory, keyword, recurse)
     validate_arguments(directory, keyword)
-    perform_image_search(directory, keyword)
+    search_images_in_directory(directory, keyword, recurse)
   end
 
   private
 
-  # Method to validate the command-line arguments.
+  # Validates the command-line arguments
   def validate_arguments(directory, keyword)
     unless directory && keyword
       puts 'Error: Please provide directory path and keyword.'
@@ -45,18 +46,47 @@ class Main
     end
   end
 
-  # Method to perform the image search.
-  def perform_image_search(directory, keyword)
-    directory = directory
-    search = ImageSearcher.new(@parser, @debug)
-    search.search_files_in_directory(directory.gsub("\\", "/"), keyword)
+  def display_total_time()
+    total_time_seconds = (Time.now - @start_time).to_i
+    if total_time_seconds >= 60
+      total_time_minutes = total_time_seconds / 60
+      remaining_seconds = total_time_seconds % 60
+      if remaining_seconds.zero?
+        puts "Total time taken: #{total_time_minutes} minutes"
+      else
+        puts "Total time taken: #{total_time_minutes} minutes and #{remaining_seconds} seconds"
+      end
+    else
+      puts "Total time taken: #{total_time_seconds} seconds"
+    end
   end
 
-  # Method to display usage instructions.
+  # Instantiates the ImageSearcher class for each directory to scan
+  def search_images_in_directory(directory, keyword, recurse)
+    directory = directory.gsub("\\", "/")
+    search = ImageSearcher.new(@parser, @debug)
+    puts "=== Searching in root directory: #{directory} ==="
+    search.search_files_in_directory(directory, keyword)
+    if recurse
+      Dir.glob("#{directory}/*").each do |dir|
+        next unless File.directory?(dir)
+        puts
+        puts "=== Searching in subdir: #{dir} ==="
+        search.search_files_in_directory(dir, keyword)
+      end
+    end
+    display_total_time
+  end
+
   def usage
-    puts 'Usage: ruby main.rb <directory_with_images> <keyword_to_search>'
+    puts 'Usage: ruby main.rb <directory_with_images> <keyword_to_search> [-debug] [-recurse]'
     exit
   end
 end
 
-Main.new(ARGV.include?("-debug")).start_search(ARGV[0], ARGV[1])
+args = ARGV
+debug = args.include?("-debug")
+recurse = args.include?("-recurse")
+args.reject! { |arg| arg == "-debug" || arg == "-recurse" }
+
+Main.new(debug).init_search(args[0], args[1], recurse)
