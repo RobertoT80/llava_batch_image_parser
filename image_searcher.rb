@@ -1,13 +1,18 @@
 # Class responsible for searching image files in a directory and see if they match with the parsed content.
 class ImageSearcher
-  IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg'].freeze
+  IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.bmp', '.svg'].freeze
 
+  # Initializes an ImageSearcher object.
+  #
+  # @param parser [Object] The parser object responsible for parsing image content.
+  # @param debug [Boolean] Flag indicating whether debug mode is enabled or not.
   def initialize(parser, debug)
     @parser = parser
     @debug = debug
   end
 
-  # Method to search for files in a directory and parse image files.
+  # Method to search for image files in a directory and parse them.
+  #
   # @param directory [String] The directory path where image files are located.
   # @param keyword [String] The keyword to search for in the content of image files.
   def search_files_in_directory(directory, keyword)
@@ -24,16 +29,17 @@ class ImageSearcher
   private
 
   # Checks if a file has an image extension.
+  #
   # @param file [String] The file path to check.
   # @return [Boolean] True if the file has an image extension, otherwise false.
   def file_image?(file)
     IMAGE_EXTENSIONS.include?(File.extname(file).downcase)
   end
 
-  # Wrapper to invoke processing of each image file.
+  # Invokes processing of each image file.
   #
   # @param images [Array<String>] An array of file paths to image files.
-  # @param keyword [String] The keyword to search for in the content of the image
+  # @param keyword [String] The keyword to search for in the content of the image.
   def process_images(images, keyword)
     images.each_with_index do |image_fullpath, index|
       image_count = index + 1
@@ -42,7 +48,7 @@ class ImageSearcher
     end
   end
 
-  # Does the actual content analysis of the image
+  # Performs the content analysis of an image.
   #
   # @param image_fullpath [String] The full path of the image file to parse.
   # @param keyword [String] The keyword to search for in the content of image files.
@@ -54,7 +60,7 @@ class ImageSearcher
     image_matches?(image_parse_response, keyword)
   end
 
-  # Displays how many images have been found, if any.
+  # Displays the number of image files found in the directory.
   #
   # @param count [Integer] The count of image files found.
   def display_image_count(count)
@@ -66,15 +72,18 @@ class ImageSearcher
     end
   end
 
+  # Searches for a multi-word keyword within the word list.
+  #
+  # @param word_list [Array<String>] The list of words from the image content.
+  # @param keyword [String] The keyword to search for in the content of image files.
+  # @return [Boolean] True if the keyword is found, otherwise false.
   def search_multiple_word(word_list, keyword)
-    puts "DEBUG: keyword is #{keyword.split.count} words" if @debug
     index = word_list.index(keyword.split[0])
     if index.nil?
       puts "DEBUG: multiple word not found."
     else
       puts "DEBUG: First word found at index: #{index}" if @debug
       shift = 0
-      # singular
       keyword.split.each do |word|
         index_shifted = shift + index
         if word.downcase == word_list[index_shifted].downcase
@@ -87,15 +96,13 @@ class ImageSearcher
     end
   end
 
-  # Method to return if an image matches.
+  # Checks if the image content matches the keyword.
   #
   # @param image_parse_response [String] The parsed content of the image.
   # @param keyword [String] The keyword to search for in the content of image files.
   def image_matches?(image_parse_response, keyword)
     puts "DEBUG: Searching for '#{keyword}' and '#{keyword.en.plural}'" if @debug
-    # I want all words removing the punctuation if present at the end except if it's an apostrophe
-	word_list = image_parse_response.downcase.split(/\W+|\b'/)
-	puts "word_list: #{word_list}" if @debug
+    word_list = image_parse_response.downcase.split(/\W+|\b'/)
     if keyword.index(' ').nil?
       puts "DEBUG: keyword is a single word." if @debug
       if word_list.include?(keyword)
@@ -114,7 +121,11 @@ class ImageSearcher
     end
   end
 
-  # Displays the content of the image specifying if the match was with the plural form of the keyword
+  # Displays the content of the image, indicating if the match was with the plural form of the keyword.
+  #
+  # @param content [String] The parsed content of the image.
+  # @param keyword [String] The keyword to search for in the content of image files.
+  # @param plural [Boolean] Flag indicating if the keyword is in plural form.
   def display_match(content, keyword, plural)
     if plural
       keyword = keyword.en.plural
@@ -127,6 +138,11 @@ class ImageSearcher
     display_string_colorized(content, keyword)
   end
 
+  # Displays the content of the image with colorized keyword.
+  #
+  # @param phrase [String] The content of the image.
+  # @param keyword [String] The keyword to search for in the content of image files.
+  # @param color_code [String] The color code for highlighting the keyword, default green
   def display_string_colorized(phrase, keyword, color_code="\e[32m")
     output = "=> "
     words = phrase.split(/\s+/)
